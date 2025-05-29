@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عرض صور للحفلات</title>
+    <title>عرض صور حفلة النجاح</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -1006,30 +1006,38 @@
         // دالة لتصدير الإعدادات (الشرائح) إلى ملف JSON
 // دالة لحفظ الإعدادات الحالية إلى ملف JSON يمكن تنزيله
             function saveSettingsToFile() {
-                const settingsToSave = {
-                    slides: slides,
-                    background: {
-                        url: backgroundImageUrlInput.value,
-                    },
-                    currentSlideIndex: currentSlideIndex,
-                    slideDuration: slideDurationInput.value,
-                    transitionEffects: selectedTransitionEffects,
-                    // أضف أي إعدادات أخرى ترغب في حفظها هنا
-                };
+    const settingsToSave = {
+        slides: slides,
+        background: {
+            url: backgroundImageUrlInput.value,
+        },
+        music: {
+            url: backgroundMusicUrlInput.value,
+            volume: musicVolumeControl.value
+        },
+        footer: {
+            text: footerTextInput.value,
+            textColor: footerTextColorInput.value,
+            bgColor: footerBgColorInput.value
+        },
+        currentSlideIndex: currentSlideIndex,
+        slideDuration: slideDurationInput.value,
+        transitionEffects: selectedTransitionEffects,
+    };
 
-                const dataStr = JSON.stringify(settingsToSave, null, 4);
-                const blob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'settings.json'; // اسم الملف الافتراضي
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+    const dataStr = JSON.stringify(settingsToSave, null, 4);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'عرض_النجاح_الإعدادات.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 
-                displayMessage('تم حفظ إعدادات العرض كملف settings.json.');
-            }
+    displayMessage('تم حفظ إعدادات العرض كملف JSON.');
+}
 
         // وظيفة لتحميل الإعدادات الافتراضية
         function loadDefaultSettings() {
@@ -1084,8 +1092,6 @@
             backgroundImageUrlInput.value = '';
             document.body.style.backgroundImage = 'none';
             backgroundPreview.style.display = 'none';
-            backgroundMusicElement.pause();
-            backgroundMusicElement.src = '';
             musicVolumeControl.value = 0.5;
             volumeValue.textContent = '50%';
             slideDurationInput.value = 5;
@@ -1193,81 +1199,78 @@ function updateBackground() {
 }
 
         // دالة لتحميل الإعدادات من ملف يختاره المستخدم
-            function loadSettingsFromFile(event) {
-                const file = event.target.files[0];
-                if (!file) {
-                    displayMessage('الرجاء تحديد ملف JSON للتحميل.', true);
-                    return;
+function loadSettingsFromFile(event) {
+    const file = event.target.files[0];
+    if (!file) {
+        displayMessage('الرجاء تحديد ملف JSON للتحميل.', true);
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+        try {
+            const importedSettings = JSON.parse(e.target.result);
+
+            if (importedSettings && Array.isArray(importedSettings.slides)) {
+                slides = [];
+                importedSettings.slides.forEach(s => slides.push(s));
+
+                currentSlideIndex = importedSettings.currentSlideIndex || 0;
+
+                // استعادة الخلفية
+                if (importedSettings.background && importedSettings.background.url) {
+                    backgroundImageUrlInput.value = importedSettings.background.url;
+                    updateBackground();
                 }
 
-                const reader = new FileReader();
-
-                reader.onload = (e) => {
-                    try {
-                        const importedSettings = JSON.parse(e.target.result);
-
-                        if (importedSettings && Array.isArray(importedSettings.slides)) {
-                            // مسح الشرائح الحالية قبل التحميل لمنع التكرار أو التضارب
-                            slides = [];
-                            // استعادة الشرائح من الملف
-                            importedSettings.slides.forEach(s => slides.push(s));
-
-                            currentSlideIndex = importedSettings.currentSlideIndex || 0;
-
-                            // استعادة الخلفية (تعديل مباشر)
-// استعادة الخلفية (تعديل مباشر)
-                            if (importedSettings.background && importedSettings.background.url) {
-                            backgroundImageUrlInput.value = importedSettings.background.url;
-                            slideshowContainer.style.backgroundImage = `url('${importedSettings.background.url}')`;
-                            slideshowContainer.style.backgroundSize = 'cover';
-                            slideshowContainer.style.backgroundPosition = 'center';
-                            slideshowContainer.style.backgroundRepeat = 'no-repeat';
-                            backgroundPreview.src = importedSettings.background.url;
-                            backgroundPreview.style.display = 'block';
-
-                            } else {
-                                backgroundImageUrlInput.value = '';
-                                document.body.style.backgroundImage = 'none';
-                                document.body.style.backgroundSize = '';
-                                document.body.style.backgroundPosition = '';
-                                document.body.style.backgroundRepeat = '';
-                                backgroundPreview.style.display = 'none';
-                                backgroundPreview.src = '';
-                            }
-                            backgroundFileInput.value = '';        
-
-                            if (importedSettings.slideDuration) {
-                                slideDurationInput.value = importedSettings.slideDuration;
-                            }
-
-                            if (importedSettings.transitionEffects && Array.isArray(importedSettings.transitionEffects)) {
-                                selectedTransitionEffects = importedSettings.transitionEffects;
-                                updateTransitionCheckboxes();
-                            } else {
-                                selectedTransitionEffects = ['fade-in'];
-                                updateTransitionCheckboxes();
-                            };
-
-                            updateSlidesList(); // تحديث قائمة الشرائح في لوحة التحكم
-                            showSlide(currentSlideIndex); // عرض الشريحة الحالية
-                            startSlideshow(); // بدء العرض التلقائي
-
-                            displayMessage('تم تحميل الإعدادات من الملف بنجاح!');
-                        } else {
-                            displayMessage('ملف JSON الذي تم تحميله غير صالح أو لا يحتوي على بيانات الشرائح.', true);
-                        }
-                    } catch (error) {
-                        console.error('خطأ في تحليل ملف JSON:', error);
-                        displayMessage('حدث خطأ أثناء تحميل الملف. تأكد من أنه ملف JSON صالح.', true);
+                // استعادة إعدادات الموسيقى
+                if (importedSettings.music) {
+                    backgroundMusicUrlInput.value = importedSettings.music.url || '';
+                    musicVolumeControl.value = importedSettings.music.volume || 0.5;
+                    volumeValue.textContent = `${Math.round((importedSettings.music.volume || 0.5) * 100)}%`;
+                    if (importedSettings.music.url) {
+                        backgroundMusicElement.src = importedSettings.music.url;
                     }
-                };
+                }
 
-                reader.onerror = () => {
-                    displayMessage('حدث خطأ أثناء قراءة الملف.', true);
-                };
+                // استعادة إعدادات التذييل
+                if (importedSettings.footer) {
+                    footerTextInput.value = importedSettings.footer.text || '';
+                    footerTextColorInput.value = importedSettings.footer.textColor || '#FFFFFF';
+                    footerBgColorInput.value = importedSettings.footer.bgColor || '#000000';
+                    updateFooter();
+                }
 
-                reader.readAsText(file); 
-              }
+                if (importedSettings.slideDuration) {
+                    slideDurationInput.value = importedSettings.slideDuration;
+                }
+
+                if (importedSettings.transitionEffects && Array.isArray(importedSettings.transitionEffects)) {
+                    selectedTransitionEffects = importedSettings.transitionEffects;
+                    updateTransitionCheckboxes();
+                }
+
+                updateSlidesList();
+                showSlide(currentSlideIndex);
+                startSlideshow();
+
+                displayMessage('تم تحميل الإعدادات من الملف بنجاح!');
+            } else {
+                displayMessage('ملف JSON الذي تم تحميله غير صالح أو لا يحتوي على بيانات الشرائح.', true);
+            }
+        } catch (error) {
+            console.error('خطأ في تحليل ملف JSON:', error);
+            displayMessage('حدث خطأ أثناء تحميل الملف. تأكد من أنه ملف JSON صالح.', true);
+        }
+    };
+
+    reader.onerror = () => {
+        displayMessage('حدث خطأ أثناء قراءة الملف.', true);
+    };
+
+    reader.readAsText(file);
+}
 
         // دالة لحفظ الإعدادات الحالية إلى ملف JSON يمكن تنزيله
             function exportCurrentSettings() {
@@ -1276,7 +1279,18 @@ function updateBackground() {
                     background: {
                         url: backgroundImageUrlInput.value,
                     },
-                    currentSlideIndex: currentSlideIndex,
+     
+                    music: {
+                    url: backgroundMusicUrlInput.value,
+                    volume: musicVolumeControl.value
+                   },
+
+                   footer: {
+                   text: footerTextInput.value,
+                   textColor: footerTextColorInput.value,
+                   bgColor: footerBgColorInput.value
+                  },
+                   currentSlideIndex: currentSlideIndex,
                     slideDuration: slideDurationInput.value,
                     transitionEffects: selectedTransitionEffects,
                 };
@@ -1466,16 +1480,5 @@ slideDurationInput.addEventListener('change', startSlideshow);
         });
    
     </script>
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-WS9PJMD8F0"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-WS9PJMD8F0');
-</script>
-
 </body>
 </html>
