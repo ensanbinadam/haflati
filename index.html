@@ -858,13 +858,24 @@
         }
 
         // وظيفة لبدء عرض الشرائح التلقائي
-        function startSlideshow() {
-            clearInterval(slideshowInterval); // مسح أي فاصل زمني سابق
-            if (slides.length > 0) {
-                slideDuration = parseInt(slideDurationInput.value) * 1000;
-                slideshowInterval = setInterval(nextSlide, slideDuration);
-            }
+    function startSlideshow() {
+    clearInterval(slideshowInterval);
+    if (slides.length > 0) {
+        slideDuration = parseInt(slideDurationInput.value) * 1000;
+        slideshowInterval = setInterval(nextSlide, slideDuration);
+        
+        // تشغيل الموسيقى تلقائياً إذا كان هناك مصدر صوت
+        if (backgroundMusicElement.src) {
+            backgroundMusicElement.currentTime = 0; // إعادة التشغيل من البداية
+            backgroundMusicElement.play()
+                .then(() => console.log("الموسيقى تعمل تلقائياً"))
+                .catch(e => {
+                    console.error("خطأ في التشغيل التلقائي:", e);
+                    displayMessage('يتطلب المتصفح تفاعلاً لتشغيل الصوت. الرجاء الضغط على واجهة العرض ', true);
+                });
         }
+    }
+}
 
         // وظيفة تحديث قائمة الشرائح في لوحة الإعدادات
         function updateSlidesList() {
@@ -1042,42 +1053,62 @@
         // وظيفة لتحميل الإعدادات الافتراضية
         function loadDefaultSettings() {
             slides = []; // مسح الشرائح الحالية
-            backgroundImageUrlInput.value = ''; // مسح خلفية عامة
+
+                    // إضافة خلفية افتراضية
+        const defaultBackgroundUrl = 'https://moe.gov.sa/ar/mediacenter/MOEnews/PublishingImages/Pages/news1_18082024/IMG-20240818-WA0051.jpg';
+        backgroundImageUrlInput.value = defaultBackgroundUrl;
+        updateBackground();
+        
+        // إضافة ملف صوتي افتراضي
+        const defaultMusicUrl = 'https://github.com/ensanbinadam/haflati/raw/refs/heads/main/helm.mp3'; // يمكن استبدال هذا برابط ملف صوتي مناسب
+        backgroundMusicUrlInput.value = defaultMusicUrl;
+        backgroundMusicElement.src = defaultMusicUrl;
+        musicVolumeControl.value = 0.5;
+        volumeValue.textContent = '50%';
+
+                // إعدادات التذييل الافتراضية
+        footerTextInput.value = 'حفل تخرجنا 2024';
+        footerTextColorInput.value = '#FFFFFF';
+        footerBgColorInput.value = '#000000';
+        updateFooter();
+        
+            backgroundImageUrlInput.value = 'https://moe.gov.sa/ar/mediacenter/MOEnews/PublishingImages/Pages/news1_18082024/IMG-20240818-WA0051.jpg'; // مسح خلفية عامة
             document.body.style.backgroundImage = 'none';
             backgroundPreview.style.display = 'none';
 
-            // إعادة تعيين إعدادات الموسيقى والتذييل
-            backgroundMusicUrlInput.value = '';
-            backgroundMusicElement.pause();
-            backgroundMusicElement.src = '';
-            musicVolumeControl.value = 0.5;
-            volumeValue.textContent = '50%';
-            footerTextInput.value = 'حفل تخرجنا 2024';
-            footerTextColorInput.value = '#FFFFFF';
-            footerBgColorInput.value = '#000000';
-            updateFooter();
             selectedTransitionEffects = ['fade-in', 'slide-left']; // تأثيرات افتراضية للخلط
             updateTransitionCheckboxes();
 
-            // إضافة طلاب افتراضيين (بصور Placeholder وأشكال مختلفة)
-            addStudent("محمد أحمد", "مبروك التخرج!", "https://via.placeholder.com/250/0000FF/FFFFFF?text=M.A", "circle");
-            addStudent("سارة علي", "متفوقة في العلوم", "https://via.placeholder.com/250x375/FF0000/FFFFFF?text=S.A", "rectangle");
-            addStudent("خالد سعيد", "نجم الحفل", "https://via.placeholder.com/250/00FF00/FFFFFF?text=K.S", "circle");
-            addStudent("فاطمة ناصر", "المستقبل واعد", "https://via.placeholder.com/250x375/FFFF00/000000?text=F.N", "rectangle");
+                // هذه الإضافة بعد تحميل المصادر
+            backgroundMusicElement.volume = musicVolumeControl.value;
+            startSlideshow(); // سيحاول تشغيل الموسيقى تلقائياً
 
-            addTextSlide("تهانينا!", "نتمنى لكم دوام التوفيق والنجاح.");
+            // إضافة طلاب افتراضيين (بصور Placeholder وأشكال مختلفة)
+             addStudent("اسم الطالب", " العبارة التحفيزية | صورة احتواء", "https://d26e3f10zvrezp.cloudfront.net/Gallery/da59a77a-5e81-4f13-94ad-eed2c316b3c8-1024x576.webp", "circle");
+            addStudent("اسم الطالب", "عبارة تحفيزية|صورة مستطيلة 4*6", "https://d26e3f10zvrezp.cloudfront.net/Gallery/da59a77a-5e81-4f13-94ad-eed2c316b3c8-1024x576.webp", "rectangle");
+           
+            addTextSlide("تهانينا!", "نتمنى لكم دوام التوفيق والنجاح. هذه شريحة نصية");
             addTextSlide("ألف مبروك التخرج!", "نفخر بإنجازاتكم ونتمنى لكم كل التوفيق في مسيرتكم القادمة.");
 
-            addImage('https://via.placeholder.com/800x600/0000FF/FFFFFF?text=Slide%201', 'صورة رقم 1', 'احتفال الطلاب');
-            addImage('https://via.placeholder.com/800x600/FF0000/FFFFFF?text=Slide%202', 'صورة رقم 2', 'ذكريات جميلة');
-            addImage('https://via.placeholder.com/800x600/00FF00/FFFFFF?text=Slide%203', 'صورة رقم 3', 'لحظات لا تنسى');
-
-
+            addImage('https://moe.gov.sa/ar/mediacenter/MOEnews/PublishingImages/News%20Images%202024/IMG-20240818-WA0047.jpg', 'تعلم وإلى العلياء تقدم', 'العلم نور | صورة كاملة');
+            addImage('https://moe.gov.sa/ar/mediacenter/PhotoLibrary/PhotoLibrary/flag-pole.jpg', 'تعلم وإلى العلياء تقدم', 'العلم نور | صورة كاملة');
+           
             slideDurationInput.value = 5; // إعادة ضبط المدة الافتراضية
             updateSlidesList();
             displayMessage('تم تحميل الإعدادات الافتراضية بنجاح.');
             startSlideshow(); // بدء العرض
         }
+
+        // دالة لمحاولة تشغيل الصوت عند أي تفاعل مع الصفحة
+function enableAudio() {
+    document.body.addEventListener('click', function() {
+        if (backgroundMusicElement.paused && backgroundMusicElement.src) {
+            backgroundMusicElement.play()
+                .then(() => console.log("تم تشغيل الصوت بعد التفاعل"))
+                .catch(e => console.error("فشل تشغيل الصوت:", e));
+        }
+    }, { once: true }); // تعمل مرة واحدة فقط
+}
 
         // وظيفة لمسح جميع الشرائح والإعدادات
         function clearAllSlides() {
@@ -1164,6 +1195,7 @@
         }
 
 function updateBackground() {
+    backgroundImageUrl="https//moe.gov.sa/ar/mediacenter/MOEnews/PublishingImages/Pages/news1_18082024/IMG-20240818-WA0051.jpg"
     const imageUrl = backgroundImageUrlInput.value.trim();
     const file = backgroundFileInput.files[0];
 
@@ -1472,8 +1504,8 @@ slideDurationInput.addEventListener('change', startSlideshow);
             document.body.style.backgroundRepeat = ''; // مسح أنماط التكرار
             backgroundPreview.style.display = 'none'; // إخفاء معاينة الخلفية
             backgroundPreview.src = ''; // مسح مصدر معاينة الخلفية
-
             slideDurationInput.value = 5; // يمكن تعيين مدة افتراضية هنا
+            enableAudio(); // تفعيل نظام تشغيل الصوت عند التفاعل
 
             // استدعاء loadDefaultSettings() لتهيئة القيم الافتراضية للعناصر
             loadDefaultSettings(); 
