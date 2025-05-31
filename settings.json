@@ -1,0 +1,68 @@
+{
+    "slides": [
+        {
+            "type": "text",
+            "title": "تهانينا!",
+            "comment": "نتمنى لكم دوام التوفيق والنجاح.",
+            "effect": "fade-in"
+        },
+
+        {
+            "type": "student",
+            "name": "الطالب/الطالبة",
+            "comment": "صورة مستطلية مثل مقاس 4*6",
+            "imageUrl": "student1.jpg",
+            "imageShape": "rectangle",
+            "effect": "fade-in"
+        },
+
+                {
+            "type": "student",
+            "name": "الطالب/الطالبة",
+            "comment": "صورة في دائرة احتواء بالوجه",
+            "imageUrl": "student2.jpg",
+            "imageShape": "circle",
+            "effect": "fade-in"
+        },
+
+                {
+            "type": "image",
+            "imageUrl": "photo1.jpg",
+            "caption": "صورة عامة كاملة مستطيلة عادية",
+            "title": "لحظات لا تنسى",
+            "effect": "fade-in"
+        },
+
+                {
+            "type": "image",
+            "imageUrl": "photo2.jpg",
+            "caption": "صورة عامة كاملة مستطيلة عادية",
+            "title": "لحظات لا تنسى",
+            "effect": "fade-in"
+        }
+
+
+
+    ],
+    "background": {
+        "url": "background.jpg"
+    },
+    "music": {
+        "url": "najahna.mp3",
+        "volume": "0.5"
+    },
+    "footer": {
+        "text": "حفل تخرجناـ نجحنا 1446هـ",
+        "textColor": "#ffffff",
+        "bgColor": "#000000"
+    },
+    "currentSlideIndex": 0,
+    "slideDuration": "5",
+    "transitionEffects": [
+        "fade-in",
+        "slide-left",
+        "slide-right",
+        "zoom-in",
+        "rotate-in"
+    ]
+}
