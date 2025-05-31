@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عرض صور حفلة النجاح</title>
+    <title>إنشاء عرض تقديمي</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -546,12 +547,16 @@
 
             <label class="mt-4">تأثيرات الانتقال:</label>
             <div id="transitionEffects" class="grid grid-cols-2 gap-2 text-sm">
-                <label><input type="checkbox" value="fade-in" checked> تلاشي</label>
-                <label><input type="checkbox" value="slide-left"> انزلاق لليسار</label>
-                <label><input type="checkbox" value="slide-right"> انزلاق لليمين</label>
-                <label><input type="checkbox" value="zoom-in"> تكبير</label>
-                <label><input type="checkbox" value="rotate-in"> دوران</label>
-            </div>
+<div id="transitionEffects" class="grid grid-cols-2 gap-2 text-sm">
+    <label><input type="checkbox" value="fade-in" checked> تلاشي</label>
+    <label><input type="checkbox" value="slide-left"> انزلاق لليسار</label>
+    <label><input type="checkbox" value="slide-right"> انزلاق لليمين</label>
+    <label><input type="checkbox" value="zoom-in"> تكبير</label>
+    <label><input type="checkbox" value="rotate-in"> دوران</label>
+    <label><input type="checkbox" value="slide-up"> صعود لأعلى</label>
+    <label><input type="checkbox" value="ken-burns"> تأثير Ken Burns</label>
+    <label><input type="checkbox" value="blur-in"> دخول ضبابي</label>
+</div>
             <button id="applyTransitionEffectsBtn" class="bg-blue-500 hover:bg-blue-600">تطبيق تأثيرات الانتقال</button>
         </div>
         <div class="mb-4 p-3 border rounded-lg">
@@ -565,7 +570,13 @@
         <div class="slides-list" id="slidesList">
             <h3 class="font-semibold text-lg mb-2">الشرائح المضافة:</h3>
             </div>
-            
+            <!-- أضف هذا الجزء قبل نهاية div#settingsPanel -->
+        <div class="mb-4 p-3 border rounded-lg">
+        <h3 class="font-semibold text-lg mb-2">توليد نسخة نهائية</h3>
+        <button id="generateFinalBtn" class="bg-purple-600 hover:bg-purple-700 w-full">توليد نسخة بدون لوحة تحكم</button>
+        <p class="text-sm text-gray-400 mt-2">سيتم إنشاء نسخة مستقلة تحتوي على العرض الحالي فقط</p>
+        </div>
+          
         <div class="flex flex-wrap justify-between gap-2 mt-4">
                 <button id="exportSettingsBtn" class="bg-purple-600 hover:bg-purple-700 flex-grow">حفظ العرض (JSON)</button>
                 <input type="file" id="loadFileInput" accept=".json" class="hidden"> <button id="loadFromFileBtn" class="bg-teal-600 hover:bg-teal-700 flex-grow">تحميل من ملف (JSON)</button> </div>
@@ -678,7 +689,10 @@
             'slide-left',
             'slide-right',
             'zoom-in',
-            'rotate-in'
+            'rotate-in,
+            'slide-up',
+            'ken-burns',
+            'blur-in'
         ];
 
         // وظائف مساعدة لعرض الرسائل
@@ -1050,54 +1064,34 @@
     displayMessage('تم حفظ إعدادات العرض كملف JSON.');
 }
 
-        // وظيفة لتحميل الإعدادات الافتراضية
-        function loadDefaultSettings() {
-            slides = []; // مسح الشرائح الحالية
+// وظيفة لتحميل الإعدادات الافتراضية
+function loadDefaultSettings() {
+    slides = []; // مسح الشرائح الحالية
 
-                    // إضافة خلفية افتراضية
-        const defaultBackgroundUrl = 'https://moe.gov.sa/ar/mediacenter/MOEnews/PublishingImages/Pages/news1_18082024/IMG-20240818-WA0051.jpg';
-        backgroundImageUrlInput.value = defaultBackgroundUrl;
-        updateBackground();
-        
-        // إضافة ملف صوتي افتراضي
-        const defaultMusicUrl = 'https://github.com/ensanbinadam/haflati/raw/refs/heads/main/helm.mp3'; // يمكن استبدال هذا برابط ملف صوتي مناسب
-        backgroundMusicUrlInput.value = defaultMusicUrl;
-        backgroundMusicElement.src = defaultMusicUrl;
-        musicVolumeControl.value = 0.5;
-        volumeValue.textContent = '50%';
+    // إعدادات التذييل الافتراضية
+    footerTextInput.value = 'حفل تخرجنا 2024';
+    footerTextColorInput.value = '#FFFFFF';
+    footerBgColorInput.value = '#000000';
+    updateFooter();
 
-                // إعدادات التذييل الافتراضية
-        footerTextInput.value = 'حفل تخرجنا 2024';
-        footerTextColorInput.value = '#FFFFFF';
-        footerBgColorInput.value = '#000000';
-        updateFooter();
-        
-            backgroundImageUrlInput.value = 'https://moe.gov.sa/ar/mediacenter/MOEnews/PublishingImages/Pages/news1_18082024/IMG-20240818-WA0051.jpg'; // مسح خلفية عامة
-            document.body.style.backgroundImage = 'none';
-            backgroundPreview.style.display = 'none';
+    selectedTransitionEffects = ['fade-in', 'slide-left']; // تأثيرات افتراضية للخلط
+    updateTransitionCheckboxes();
 
-            selectedTransitionEffects = ['fade-in', 'slide-left']; // تأثيرات افتراضية للخلط
-            updateTransitionCheckboxes();
+    // إضافة أمثلة افتراضية (يمكنك تعديلها)
+    addStudent("الطالب الأول", "تهانينا لك بالنجاح!", "student1.jpg", "circle");
+    addStudent("الطالب الثاني", "مبروك التخرج!", "student2.jpg", "rectangle");
 
-                // هذه الإضافة بعد تحميل المصادر
-            backgroundMusicElement.volume = musicVolumeControl.value;
-            startSlideshow(); // سيحاول تشغيل الموسيقى تلقائياً
+    addTextSlide("تهانينا!", "نتمنى لكم دوام التوفيق والنجاح");
+    addTextSlide("ألف مبروك النجاح!", "نفخر بتميزكم ونتمنى لكم كل التوفيق");
 
-            // إضافة طلاب افتراضيين (بصور Placeholder وأشكال مختلفة)
-             addStudent("اسم الطالب", " العبارة التحفيزية | صورة احتواء", "https://d26e3f10zvrezp.cloudfront.net/Gallery/da59a77a-5e81-4f13-94ad-eed2c316b3c8-1024x576.webp", "circle");
-            addStudent("اسم الطالب", "عبارة تحفيزية|صورة مستطيلة 4*6", "https://d26e3f10zvrezp.cloudfront.net/Gallery/da59a77a-5e81-4f13-94ad-eed2c316b3c8-1024x576.webp", "rectangle");
-           
-            addTextSlide("تهانينا!", "نتمنى لكم دوام التوفيق والنجاح. هذه شريحة نصية");
-            addTextSlide("ألف مبروك التخرج!", "نفخر بإنجازاتكم ونتمنى لكم كل التوفيق في مسيرتكم القادمة.");
+    addImage('hphoto1.jpg', 'تعلم وإلى العلياء تقدم', 'العلم نور');
+    addImage('photo2.jpg', 'حفل التخرج 1446هـ', 'تهانينا للخريجين');
 
-            addImage('https://moe.gov.sa/ar/mediacenter/MOEnews/PublishingImages/News%20Images%202024/IMG-20240818-WA0047.jpg', 'تعلم وإلى العلياء تقدم', 'العلم نور | صورة كاملة');
-            addImage('https://moe.gov.sa/ar/mediacenter/PhotoLibrary/PhotoLibrary/flag-pole.jpg', 'تعلم وإلى العلياء تقدم', 'العلم نور | صورة كاملة');
-           
-            slideDurationInput.value = 5; // إعادة ضبط المدة الافتراضية
-            updateSlidesList();
-            displayMessage('تم تحميل الإعدادات الافتراضية بنجاح.');
-            startSlideshow(); // بدء العرض
-        }
+    slideDurationInput.value = 5;
+    updateSlidesList();
+    displayMessage('تم تحميل الإعدادات الافتراضية بنجاح.');
+}
+
 
         // دالة لمحاولة تشغيل الصوت عند أي تفاعل مع الصفحة
 function enableAudio() {
@@ -1195,7 +1189,6 @@ function enableAudio() {
         }
 
 function updateBackground() {
-    backgroundImageUrl="https//moe.gov.sa/ar/mediacenter/MOEnews/PublishingImages/Pages/news1_18082024/IMG-20240818-WA0051.jpg"
     const imageUrl = backgroundImageUrlInput.value.trim();
     const file = backgroundFileInput.files[0];
 
@@ -1221,11 +1214,7 @@ function updateBackground() {
         displayMessage('تم تحديث خلفية العرض من رابط.');
     } else {
         slideshowContainer.style.backgroundImage = 'none';
-        slideshowContainer.style.backgroundSize = '';
-        slideshowContainer.style.backgroundPosition = '';
-        slideshowContainer.style.backgroundRepeat = '';
         backgroundPreview.style.display = 'none';
-        backgroundPreview.src = '';
         displayMessage('تم إزالة خلفية العرض.');
     }
 }
@@ -1367,6 +1356,114 @@ function loadSettingsFromFile(event) {
             });
         }
 
+        // دالة لتحويل الصور إلى base64
+async function imageToBase64(url) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.error('Error converting image:', error);
+        return url; // إذا فشل التحويل نعود للرابط الأصلي
+    }
+}
+
+// دالة لتحويل الصوت إلى base64
+async function audioToBase64(url) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.error('Error converting audio:', error);
+        return url;
+    }
+}
+
+// دالة توليد النسخة النهائية
+async function generateFinalVersion() {
+    try {
+        displayMessage('جاري إنشاء النسخة النهائية...');
+        
+        // تحضير البيانات
+        const config = {
+            slides: [],
+            background: {
+                url: backgroundImageUrlInput.value || currentBackgroundUrl,
+                isLocal: backgroundFileInput.files.length > 0
+            },
+            music: {
+                url: backgroundMusicUrlInput.value || currentMusicUrl,
+                isLocal: backgroundMusicFileInput.files.length > 0,
+                volume: musicVolumeControl.value
+            },
+            footer: {
+                text: footerTextInput.value,
+                textColor: footerTextColorInput.value,
+                bgColor: footerBgColorInput.value
+            },
+            settings: {
+                duration: slideDurationInput.value,
+                transitions: selectedTransitionEffects
+            }
+        };
+
+        // تحويل الصور والملفات إلى base64
+        for (const slide of slides) {
+            const newSlide = {...slide};
+            
+            if (slide.imageUrl) {
+                if (slide.imageUrl.startsWith('http') || slide.imageUrl.startsWith('data:')) {
+                    newSlide.imageUrl = await imageToBase64(slide.imageUrl);
+                } else {
+                    newSlide.imageUrl = slide.imageUrl; // يحتفظ بالمسار المحلي
+                }
+            }
+            
+            config.slides.push(newSlide);
+        }
+
+        if (config.background.url && config.background.isLocal) {
+            config.background.url = await imageToBase64(config.background.url);
+        }
+
+        if (config.music.url && config.music.isLocal) {
+            config.music.url = await audioToBase64(config.music.url);
+        }
+
+        // إنشاء محتوى HTML جديد
+        const htmlContent = generateFinalHTML(config);
+        
+        // إنشاء ملف للتنزيل
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'عرض_التخرج_النهائي.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        displayMessage('تم توليد النسخة النهائية بنجاح!');
+    } catch (error) {
+        console.error('Error generating final version:', error);
+        displayMessage('حدث خطأ أثناء توليد النسخة النهائية', true);
+    }
+}
+
+// دالة إنشاء محتوى HTML النهائي
+
+
+
 
 // ربط معالجات رفع الملفات بعناصر الواجهة
 handleFileUpload(backgroundFileInput, backgroundImageUrlInput, backgroundPreview);
@@ -1378,6 +1475,267 @@ handleFileUpload(backgroundMusicFileInput, backgroundMusicUrlInput);
 settingsToggleBtn.addEventListener('click', () => {
     settingsPanel.classList.toggle('open');
 });
+
+function generateFinalHTML(config) {
+    return `
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>عرض التخرج - نسخة نهائية</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background-color: #000;
+        }
+        .slideshow-container {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+            background-image: url('${config.background.url}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            overflow: hidden;
+        }
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            transition: all 1s ease-in-out;
+        }
+        .slide.show {
+            opacity: 1;
+            z-index: 1;
+        }
+        .slide.text-slide {
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            text-align: center;
+        }
+        .slide.text-slide h2 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        .slide.text-slide p {
+            font-size: 1.5em;
+        }
+        .slide.student-slide {
+            flex-direction: column;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .slide.student-slide img {
+            display: block;
+            margin: 0 auto 20px auto;
+            border: 5px solid white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+        .student-image.circle {
+            border-radius: 50%;
+            width: 250px;
+            height: 250px;
+            object-fit: cover;
+        }
+        .student-image.rectangle {
+            width: 250px;
+            height: 375px;
+            object-fit: cover;
+        }
+        .slide.image-slide {
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .slide.image-slide .image-caption {
+            position: absolute;
+            bottom: 50px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1.2em;
+        }
+        .fade-in {
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .fade-in.show {
+            opacity: 1;
+        }
+        .slide-left {
+            transform: translateX(100%);
+            transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+            opacity: 0;
+        }
+        .slide-left.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .slide-right {
+            transform: translateX(-100%);
+            transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+            opacity: 0;
+        }
+        .slide-right.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .zoom-in {
+            transform: scale(0.5);
+            transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+            opacity: 0;
+        }
+        .zoom-in.show {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .rotate-in {
+            transform: rotateY(90deg);
+            transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+            opacity: 0;
+        }
+        .rotate-in.show {
+            transform: rotateY(0);
+            opacity: 1;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            padding: 12px;
+            text-align: center;
+            font-size: 1em;
+            z-index: 10;
+            color: ${config.footer.textColor || '#fff'};
+            background-color: ${config.footer.bgColor || '#333'};
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow-container" id="slideshowContainer"></div>
+    <div class="footer" id="mainFooter">${config.footer.text || ''}</div>
+    <audio id="backgroundMusic" loop></audio>
+
+    <script>
+        const config = ${JSON.stringify(config, null, 4)};
+        let currentSlideIndex = 0;
+        let slideshowInterval;
+        const container = document.getElementById('slideshowContainer');
+        const footer = document.getElementById('mainFooter');
+        const music = document.getElementById('backgroundMusic');
+
+        function showSlide(index) {
+            container.innerHTML = '';
+            if (!config.slides.length) {
+                container.innerHTML = '<div style="color:white;text-align:center;padding-top:40vh;font-size:24px;">لا توجد شرائح</div>';
+                return;
+            }
+
+            const slide = config.slides[index];
+            const slideEl = document.createElement('div');
+
+            const effects = config.settings.transitions || ['fade-in'];
+            const effectToApply = effects[Math.floor(Math.random() * effects.length)];
+
+            // Base classes
+            slideEl.classList.add('slide', effectToApply, 'show');
+
+        if (slide.type === 'student') {
+        let imgStyle = '';
+        if (slide.imageShape === 'circle') {
+        imgStyle = 'width: 280px; height: 280px; border-radius: 50%; object-fit: cover; border: 5px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.4); margin-bottom: 20px;';
+        } else if (slide.imageShape === 'rectangle') {
+        imgStyle = 'width: 250px; height: 375px; border-radius: 0; object-fit: cover; border: 5px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.4); margin-bottom: 20px;';
+    }
+
+        slideEl.innerHTML = \`
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background-color: rgba(0,0,0,0.6); padding: 20px;">
+        <img src="\${slide.imageUrl}" alt="\${slide.name}" style="\${imgStyle}">
+        <h2 style="font-size: 3em; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); font-weight: bold; margin-top: 10px;">\${slide.name}</h2>
+        <p style="font-size: 2em; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); margin-top: 10px; max-width: 80%; text-align: center;">\${slide.comment}</p>
+        </div>
+            \`;
+    }
+        else if (slide.type === 'text') {
+        slideEl.innerHTML = \`
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; background-color: rgba(0,0,0,0.6); padding: 20px;">
+        <h2 style="font-size: 3em; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); font-weight: bold; margin-bottom: 20px;">\${slide.title}</h2>
+        <p style="font-size: 2em; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); text-align: center;">\${slide.comment}</p>
+        </div>
+        \`;
+ }
+
+        else if (slide.type === 'image') {
+        slideEl.style.backgroundImage = \`url('\${slide.imageUrl}')\`;
+        slideEl.style.backgroundSize = 'contain';
+        slideEl.style.backgroundPosition = 'center';
+        slideEl.style.backgroundRepeat = 'no-repeat';
+
+    // لو فيه title أو caption — نضعها بأسلوب أنيق
+    if (slide.title || slide.caption) {
+        slideEl.innerHTML = \`
+        <div style="position: absolute; bottom: 50px; left: 0; right: 0; text-align: center; background: rgba(0,0,0,0.6); padding: 10px; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">
+            \${slide.title ? \`<h2 style="font-size: 2.5em; font-weight: bold; margin-bottom: 10px;">\${slide.title}</h2>\` : ''}
+            \${slide.caption ? \`<p style="font-size: 1.5em;">\${slide.caption}</p>\` : ''}
+        </div>
+        \`;
+    }
+}
+
+
+            container.appendChild(slideEl);
+        }
+
+        function startSlideshow() {
+            clearInterval(slideshowInterval);
+            if (config.slides.length > 0) {
+                if (config.music.url) {
+                    music.src = config.music.url;
+                    music.volume = config.music.volume || 0.5;
+                    music.play().catch(() => console.log('اضغط على الصفحة لتشغيل الصوت.'));
+                }
+                slideshowInterval = setInterval(() => {
+                    currentSlideIndex = (currentSlideIndex + 1) % config.slides.length;
+                    showSlide(currentSlideIndex);
+                }, (config.settings.duration || 5) * 1000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            footer.textContent = config.footer.text || '';
+            footer.style.color = config.footer.textColor || '#fff';
+            footer.style.backgroundColor = config.footer.bgColor || '#333';
+            showSlide(0);
+            startSlideshow();
+
+            document.addEventListener('click', () => {
+                if (music.paused && music.src) music.play();
+            }, { once: true });
+        });
+    <\/script>
+</body>
+</html>
+`;
+}
+
+// أضف هذا مع مستمعي الأحداث الأخرى
+document.getElementById('generateFinalBtn').addEventListener('click', generateFinalVersion);
 
 addStudentBtn.addEventListener('click', () => {
     const name = studentNameInput.value.trim();
@@ -1510,7 +1868,17 @@ slideDurationInput.addEventListener('change', startSlideshow);
             // استدعاء loadDefaultSettings() لتهيئة القيم الافتراضية للعناصر
             loadDefaultSettings(); 
         });
-   
     </script>
+
+!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+
 </body>
 </html>
