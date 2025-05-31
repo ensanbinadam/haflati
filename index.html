@@ -1841,33 +1841,25 @@ slideDurationInput.addEventListener('change', startSlideshow);
         // ربط زر تحديث الخلفية
         updateBackgroundBtn.addEventListener('click', updateBackground); // تأكد من وجود هذا السطر
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // قم بتهيئة الشرائح كفارغة عند بدء التشغيل
-            slides = []; // تأكد أن مصفوفة الشرائح فارغة
-            currentSlideIndex = 0; // إعادة تعيين فهرس الشريحة
+document.addEventListener('DOMContentLoaded', () => {
+    slides = [];
+    currentSlideIndex = 0;
+    slideshowContainer.innerHTML = '<div class="slide active flex flex-col justify-center items-center text-gray-400 text-2xl font-bold">لا توجد شرائح لعرضها. أضف شرائح من لوحة الإعدادات، حمل الإعدادات الافتراضية، أو حمل عرضًا من ملف JSON.</div>';
+    updateSlidesList();
+    stopSlideshow();
+    updateTransitionCheckboxes();
+    backgroundImageUrlInput.value = '';
+    document.body.style.setProperty('background-image', 'none', 'important');
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundPosition = '';
+    document.body.style.backgroundRepeat = '';
+    backgroundPreview.style.display = 'none';
+    backgroundPreview.src = '';
+    slideDurationInput.value = 5;
+    enableAudio();
+    loadDefaultSettings();
+});
 
-            // عرض الرسالة التوجيهية عند بدء التشغيل
-            slideshowContainer.innerHTML = '<div class=\"slide active flex flex-col justify-center items-center text-gray-400 text-2xl font-bold\">لا توجد شرائح لعرضها. أضف شرائح من لوحة الإعدادات، حمل الإعدادات الافتراضية، أو حمل عرضًا من ملف JSON.</div>';
-            updateSlidesList(); // لتحديث قائمة الشرائح في لوحة التحكم لتظهر "لا توجد شرائح"
-            stopSlideshow(); // تأكد من إيقاف أي عرض تلقائي إذا كان يعمل
-
-            // تهيئة واجهة المستخدم والإعدادات الافتراضية
-            updateTransitionCheckboxes(); // لتطبيق الافتراضيات الافتراضية (مثل "fade-in")
-            
-            // تهيئة حقول الخلفية لجعلها فارغة عند البدء
-            backgroundImageUrlInput.value = '';
-            document.body.style.setProperty('background-image', 'none', 'important'); // مسح أي خلفية سابقة مع أولوية قصوى
-            document.body.style.backgroundSize = ''; // مسح أنماط الحجم
-            document.body.style.backgroundPosition = ''; // مسح أنماط الموضع
-            document.body.style.backgroundRepeat = ''; // مسح أنماط التكرار
-            backgroundPreview.style.display = 'none'; // إخفاء معاينة الخلفية
-            backgroundPreview.src = ''; // مسح مصدر معاينة الخلفية
-            slideDurationInput.value = 5; // يمكن تعيين مدة افتراضية هنا
-            enableAudio(); // تفعيل نظام تشغيل الصوت عند التفاعل
-
-            // استدعاء loadDefaultSettings() لتهيئة القيم الافتراضية للعناصر
-            loadDefaultSettings(); 
-        });
     </script>
 
 !-- Google tag (gtag.js) -->
