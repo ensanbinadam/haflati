@@ -1,0 +1,1156 @@
+// عناصر DOM
+const slideshowContainer = document.getElementById('slideshowContainer');
+const settingsToggleBtn = document.getElementById('settingsToggleBtn');
+const settingsPanel = document.getElementById('settingsPanel');
+const startSlideshowBtn = document.getElementById('startSlideshowBtn');
+const stopSlideshowBtn = document.getElementById('stopSlideshowBtn');
+const studentNameInput = document.getElementById('studentNameInput');
+const studentCommentInput = document.getElementById('studentCommentInput');
+const studentImageUrlInput = document.getElementById('studentImageUrlInput');
+const studentFileInput = document.getElementById('studentFileInput');
+const studentPreview = document.getElementById('studentPreview');
+const studentImageShapeInput = document.getElementById('studentImageShapeInput');
+const addStudentBtn = document.getElementById('addStudentBtn');
+const textTitleInput = document.getElementById('textTitleInput');
+const textCommentInput = document.getElementById('textCommentInput');
+const addTextSlideBtn = document.getElementById('addTextSlideBtn');
+const imageUrlInput = document.getElementById('imageUrlInput');
+const imageFileInput = document.getElementById('imageFileInput');
+const imagePreview = document.getElementById('imagePreview');
+const imageCaptionInput = document.getElementById('imageCaptionInput');
+const imageTitleInput = document.getElementById('imageTitleInput');
+const addImageBtn = document.getElementById('addImageBtn');
+const slideDurationInput = document.getElementById('slideDurationInput');
+const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+const loadDefaultsBtn = document.getElementById('loadDefaultsBtn');
+const clearAllBtn = document.getElementById('clearAllBtn');
+const exportSettingsBtn = document.getElementById('exportSettingsBtn');
+const loadFileInput = document.getElementById('loadFileInput');
+const loadFromFileBtn = document.getElementById('loadFromFileBtn');
+const slidesList = document.getElementById('slidesList');
+const messageBox = document.getElementById('messageBox');
+const backgroundImageUrlInput = document.getElementById('backgroundImageUrlInput');
+const backgroundFileInput = document.getElementById('backgroundFileInput');
+const backgroundPreview = document.getElementById('backgroundPreview');
+const updateBackgroundBtn = document.getElementById('updateBackgroundBtn');
+const backgroundMusicElement = document.getElementById('backgroundMusic');
+const backgroundMusicUrlInput = document.getElementById('backgroundMusicUrl');
+const backgroundMusicFileInput = document.getElementById('backgroundMusicFileInput');
+const musicVolumeControl = document.getElementById('musicVolume');
+const volumeValue = document.getElementById('volumeValue');
+const playMusicBtn = document.getElementById('playMusicBtn');
+const pauseMusicBtn = document.getElementById('pauseMusicBtn');
+const mainFooter = document.getElementById('mainFooter');
+const footerTextInput = document.getElementById('footerTextInput');
+const footerTextColorInput = document.getElementById('footerTextColorInput');
+const footerBgColorInput = document.getElementById('footerBgColorInput');
+const updateFooterBtn = document.getElementById('updateFooterBtn');
+const transitionEffectsContainer = document.getElementById('transitionEffects');
+const applyTransitionEffectsBtn = document.getElementById('applyTransitionEffectsBtn');
+const generateFinalBtn = document.getElementById('generateFinalBtn');
+
+// متغيرات التطبيق
+let slides = [];
+let currentSlideIndex = 0;
+let slideshowInterval;
+let slideDuration = 5000;
+let selectedTransitionEffects = ['fade-in'];
+
+const allTransitionEffects = [
+    'fade-in',
+    'slide-left',
+    'slide-right',
+    'zoom-in',
+    'rotate-in'
+];
+
+// وظائف مساعدة
+function displayMessage(message, isError = false) {
+    messageBox.textContent = message;
+    messageBox.style.backgroundColor = isError ? 'rgba(220, 53, 69, 0.8)' : 'rgba(0, 0, 0, 0.8)';
+    messageBox.classList.add('show');
+    setTimeout(() => {
+        messageBox.classList.remove('show');
+    }, 3000);
+}
+
+function addImage(imageUrl, caption = '', title = '') {
+    slides.push({
+        type: 'image',
+        imageUrl: imageUrl,
+        caption: caption,
+        title: title,
+        effect: selectedTransitionEffects[0]
+    });
+    updateSlidesList();
+    displayMessage('تم إضافة شريحة صورة بنجاح.');
+}
+
+function addStudent(name, comment, imageUrl, imageShape) {
+    slides.push({
+        type: 'student',
+        name: name,
+        comment: comment,
+        imageUrl: imageUrl,
+        imageShape: imageShape,
+        effect: selectedTransitionEffects[0]
+    });
+    updateSlidesList();
+    displayMessage('تم إضافة شريحة طالب بنجاح.');
+}
+
+function addTextSlide(title, comment) {
+    slides.push({
+        type: 'text',
+        title: title,
+        comment: comment,
+        effect: selectedTransitionEffects[0]
+    });
+    updateSlidesList();
+    displayMessage('تم إضافة شريحة نصية بنجاح.');
+}
+
+function stopSlideshow() {
+    clearInterval(slideshowInterval);
+}
+
+function showSlide(index) {
+    if (slides.length === 0) {
+        slideshowContainer.innerHTML = '<div class="slide active flex flex-col justify-center items-center text-gray-400 text-2xl font-bold">لا توجد شرائح لعرضها. أضف شرائح من لوحة الإعدادات أو حمل الإعدادات الافتراضية.</div>';
+        document.querySelector('.prev')?.remove();
+        document.querySelector('.next')?.remove();
+        document.querySelector('.dots-container')?.remove();
+        return;
+    }
+
+    const allSlides = document.querySelectorAll('.slide');
+    allSlides.forEach(slide => {
+        allTransitionEffects.forEach(effect => slide.classList.remove(effect));
+        slide.classList.remove('active', 'fade-in', 'fade-out', 'slide-left', 'slide-right', 'zoom-in', 'rotate-in');
+        slide.style.opacity = 0;
+        slide.style.transform = 'none';
+    });
+
+    slideshowContainer.innerHTML = '';
+
+    const slideData = slides[index];
+    const slideElement = document.createElement('div');
+    slideElement.classList.add('slide');
+
+    const storedSettings = JSON.parse(localStorage.getItem('slideshowSettings'));
+    if (storedSettings && storedSettings.backgroundImageUrl) {
+        slideElement.style.backgroundImage = `url('${storedSettings.backgroundImageUrl}')`;
+    }
+
+    if (slideData.type === 'student') {
+        slideElement.classList.add('student-slide');
+        const studentImage = document.createElement('img');
+        studentImage.src = slideData.imageUrl;
+        studentImage.alt = slideData.name;
+        if (slideData.imageShape === 'circle') {
+            studentImage.classList.add('student-image', 'circle');
+        } else if (slideData.imageShape === 'rectangle') {
+            studentImage.classList.add('student-image', 'rectangle');
+        }
+        slideElement.appendChild(studentImage);
+
+        const studentInfo = document.createElement('div');
+        studentInfo.classList.add('student-info', 'p-4', 'bg-black/50', 'rounded-lg', 'mt-4');
+        const studentName = document.createElement('h2');
+        studentName.classList.add('text-4xl', 'font-bold', 'mb-2');
+        studentName.textContent = slideData.name;
+        const studentComment = document.createElement('p');
+        studentComment.classList.add('text-xl');
+        studentComment.textContent = slideData.comment;
+        studentInfo.appendChild(studentName);
+        studentInfo.appendChild(studentComment);
+        slideElement.appendChild(studentInfo);
+
+    } else if (slideData.type === 'text') {
+        slideElement.classList.add('text-slide');
+        const title = document.createElement('h2');
+        title.textContent = slideData.title;
+        const comment = document.createElement('p');
+        comment.textContent = slideData.comment;
+        slideElement.appendChild(title);
+        slideElement.appendChild(comment);
+    } else if (slideData.type === 'image') {
+        slideElement.classList.add('image-slide');
+        slideElement.style.backgroundImage = `url('${slideData.imageUrl}')`;
+        slideElement.style.backgroundSize = 'contain';
+        slideElement.style.backgroundRepeat = 'no-repeat';
+        slideElement.style.backgroundPosition = 'center';
+
+        if (slideData.title) {
+            const titleElement = document.createElement('h2');
+            titleElement.textContent = slideData.title;
+            titleElement.style.position = 'absolute';
+            titleElement.style.top = '50px';
+            titleElement.style.zIndex = '1';
+            titleElement.classList.add('text-4xl', 'font-bold');
+            slideElement.appendChild(titleElement);
+        }
+
+        if (slideData.caption) {
+            const captionElement = document.createElement('div');
+            captionElement.classList.add('image-caption');
+            captionElement.textContent = slideData.caption;
+            slideElement.appendChild(captionElement);
+        }
+    }
+
+    slideshowContainer.appendChild(slideElement);
+
+    let effectToApply = 'fade-in';
+    if (selectedTransitionEffects.length > 0) {
+        effectToApply = selectedTransitionEffects[Math.floor(Math.random() * selectedTransitionEffects.length)];
+    }
+    slideElement.classList.add('active', effectToApply);
+
+    updateNavigationControls();
+}
+
+function nextSlide() {
+    currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+    showSlide(currentSlideIndex);
+}
+
+function prevSlide() {
+    currentSlideIndex = (currentSlideIndex - 1 + slides.length) % slides.length;
+    showSlide(currentSlideIndex);
+}
+
+function startSlideshow() {
+    clearInterval(slideshowInterval);
+    if (slides.length > 0) {
+        slideDuration = parseInt(slideDurationInput.value) * 1000;
+        slideshowInterval = setInterval(nextSlide, slideDuration);
+        
+        if (backgroundMusicElement.src) {
+            backgroundMusicElement.currentTime = 0;
+            backgroundMusicElement.play()
+                .then(() => console.log("الموسيقى تعمل تلقائياً"))
+                .catch(e => {
+                    console.error("خطأ في التشغيل التلقائي:", e);
+                    displayMessage('يتطلب المتصفح تفاعلاً لتشغيل الصوت. الرجاء الضغط على واجهة العرض ', true);
+                });
+        }
+    }
+}
+
+function updateSlidesList() {
+    slidesList.innerHTML = '<h3 class="font-semibold text-lg mb-2">الشرائح المضافة:</h3>';
+    if (slides.length === 0) {
+        slidesList.innerHTML += '<p class="text-gray-400 text-sm">لا توجد شرائح مضافة بعد.</p>';
+    }
+    slides.forEach((slide, index) => {
+        const slideItem = document.createElement('div');
+        let slideText = '';
+        let thumbnailHtml = '';
+
+        if (slide.type === 'student') {
+            slideText = `طالب: ${slide.name}`;
+            thumbnailHtml = `<img src="${slide.imageUrl}" alt="صورة الطالب" class="slide-thumbnail ${slide.imageShape}">`;
+        } else if (slide.type === 'text') {
+            slideText = `نص: ${slide.title || 'شريحة نصية'}`;
+            thumbnailHtml = `<span class="slide-thumbnail flex items-center justify-center bg-blue-700 text-white text-xs">نص</span>`;
+        } else if (slide.type === 'image') {
+            slideText = `صورة: ${slide.caption || 'صورة عامة'}`;
+            thumbnailHtml = `<img src="${slide.imageUrl}" alt="صورة" class="slide-thumbnail">`;
+        }
+
+        slideItem.innerHTML = `
+            <div class="slide-item-content">
+                ${thumbnailHtml}
+                <span>${index + 1}. ${slideText}</span>
+            </div>
+            <div class="slide-controls flex gap-1">
+                <button class="move-btn bg-blue-500 hover:bg-blue-600" data-index="${index}" data-direction="up" title="نقل للأعلى">⬆️</button>
+                <button class="move-btn bg-blue-500 hover:bg-blue-600" data-index="${index}" data-direction="down" title="نقل للأسفل">⬇️</button>
+                <button class="bg-red-600 hover:bg-red-700" data-index="${index}" title="حذف الشريحة">🗑️</button>
+            </div>
+        `;
+        slidesList.appendChild(slideItem);
+    });
+
+    slidesList.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const index = parseInt(e.target.dataset.index);
+            if (e.target.textContent.includes('🗑️')) {
+                slides.splice(index, 1);
+                if (currentSlideIndex >= slides.length && slides.length > 0) {
+                    currentSlideIndex = slides.length - 1;
+                } else if (slides.length === 0) {
+                    currentSlideIndex = 0;
+                }
+                displayMessage('تم حذف الشريحة.');
+            } else if (e.target.dataset.direction === 'up') {
+                if (index > 0) {
+                    [slides[index], slides[index - 1]] = [slides[index - 1], slides[index]];
+                    if (currentSlideIndex === index) currentSlideIndex--;
+                    else if (currentSlideIndex === index - 1) currentSlideIndex++;
+                    displayMessage('تم نقل الشريحة للأعلى.');
+                } else {
+                    displayMessage('هذه الشريحة بالفعل في الأعلى.', true);
+                }
+            } else if (e.target.dataset.direction === 'down') {
+                if (index < slides.length - 1) {
+                    [slides[index], slides[index + 1]] = [slides[index + 1], slides[index]];
+                    if (currentSlideIndex === index) currentSlideIndex++;
+                    else if (currentSlideIndex === index + 1) currentSlideIndex--;
+                    displayMessage('تم نقل الشريحة للأسفل.');
+                } else {
+                    displayMessage('هذه الشريحة بالفعل في الأسفل.', true);
+                }
+            }
+            updateSlidesList();
+            showSlide(currentSlideIndex);
+        });
+    });
+    showSlide(currentSlideIndex);
+    startSlideshow();
+}
+
+function updateNavigationControls() {
+    let dotsContainer = document.querySelector('.dots-container');
+    if (!dotsContainer) {
+        dotsContainer = document.createElement('div');
+        dotsContainer.classList.add('dots-container');
+        slideshowContainer.appendChild(dotsContainer);
+    }
+    dotsContainer.innerHTML = '';
+
+    if (slides.length > 0) {
+        for (let i = 0; i < slides.length; i++) {
+            const dot = document.createElement('span');
+            dot.classList.add('dot');
+            if (i === currentSlideIndex) {
+                dot.classList.add('active');
+            }
+            dot.addEventListener('click', () => {
+                currentSlideIndex = i;
+                showSlide(currentSlideIndex);
+                startSlideshow();
+            });
+            dotsContainer.appendChild(dot);
+        }
+        dotsContainer.style.display = 'block';
+    } else {
+        dotsContainer.style.display = 'none';
+    }
+
+    let prevBtn = document.querySelector('.prev');
+    let nextBtn = document.querySelector('.next');
+
+    if (slides.length > 1) {
+        if (!prevBtn) {
+            prevBtn = document.createElement('a');
+            prevBtn.classList.add('prev');
+            prevBtn.innerHTML = '&#10094;';
+            prevBtn.addEventListener('click', () => {
+                prevSlide();
+                startSlideshow();
+            });
+            slideshowContainer.appendChild(prevBtn);
+        }
+        if (!nextBtn) {
+            nextBtn = document.createElement('a');
+            nextBtn.classList.add('next');
+            nextBtn.innerHTML = '&#10095;';
+            nextBtn.addEventListener('click', () => {
+                nextSlide();
+                startSlideshow();
+            });
+            slideshowContainer.appendChild(nextBtn);
+        }
+        prevBtn.style.display = 'block';
+        nextBtn.style.display = 'block';
+    } else {
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+    }
+}
+
+function saveSettingsToFile() {
+    const settingsToSave = {
+        slides: slides,
+        background: {
+            url: backgroundImageUrlInput.value,
+        },
+        music: {
+            url: backgroundMusicUrlInput.value,
+            volume: musicVolumeControl.value
+        },
+        footer: {
+            text: footerTextInput.value,
+            textColor: footerTextColorInput.value,
+            bgColor: footerBgColorInput.value
+        },
+        currentSlideIndex: currentSlideIndex,
+        slideDuration: slideDurationInput.value,
+        transitionEffects: selectedTransitionEffects,
+    };
+
+    const dataStr = JSON.stringify(settingsToSave, null, 4);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'عرض_النجاح_الإعدادات.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    displayMessage('تم حفظ إعدادات العرض كملف JSON.');
+}
+
+function loadDefaultSettings() {
+    slides = [];
+    backgroundImageUrlInput.value = 'background.jpg';
+    updateBackground();
+    backgroundMusicUrlInput.value = 'najahna.mp3';
+    backgroundMusicElement.src = 'najahna.mp3';
+    musicVolumeControl.value = 0.5;
+    volumeValue.textContent = '50%';
+    footerTextInput.value = 'حفل نجاحننا/حفل تخرجنا 1446هـ';
+    footerTextColorInput.value = '#FFFFFF';
+    footerBgColorInput.value = '#000000';
+    updateFooter();
+
+    selectedTransitionEffects = ['fade-in', 'slide-left'];
+    updateTransitionCheckboxes();
+
+    // إضافة أمثلة افتراضية (يمكنك تعديلها)
+    addStudent("الطالب الأول", "تهانينا لك بالنجاح!", "student1.jpg", "circle");
+    addStudent("الطالب الثاني", "مبروك التخرج!", "student2.jpg", "rectangle");
+
+    addTextSlide("تهانينا!", "نتمنى لكم دوام التوفيق والنجاح");
+    addTextSlide("ألف مبروك النجاح!", "نفخر بتميزكم ونتمنى لكم كل التوفيق");
+
+    addImage('photo1.jpg', 'تعلم وإلى العلياء تقدم', 'العلم نور');
+    addImage('photo2.jpg', 'حفل التخرج 1446هـ', 'تهانينا للخريجين');
+
+    slideDurationInput.value = 5;
+    updateSlidesList();
+    displayMessage('تم تحميل الإعدادات الافتراضية بنجاح.');
+}
+
+function enableAudio() {
+    document.body.addEventListener('click', function() {
+        if (backgroundMusicElement.paused && backgroundMusicElement.src) {
+            backgroundMusicElement.play()
+                .then(() => console.log("تم تشغيل الصوت بعد التفاعل"))
+                .catch(e => console.error("فشل تشغيل الصوت:", e));
+        }
+    }, { once: true });
+}
+
+function clearAllSlides() {
+    slides = [];
+    currentSlideIndex = 0;
+    slideshowContainer.innerHTML = '<div class="slide active flex flex-col justify-center items-center text-gray-400 text-2xl font-bold">لا توجد شرائح لعرضها. أضف شرائح من لوحة الإعدادات، حمل الإعدادات الافتراضية، أو حمل عرضًا من ملف JSON.</div>';
+    updateSlidesList();
+    stopSlideshow();
+    updateTransitionCheckboxes();
+    showSlide(currentSlideIndex);
+    backgroundImageUrlInput.value = '\assets\background.jpg';
+    document.body.style.backgroundImage = 'none';
+    backgroundPreview.style.display = 'none';
+    musicVolumeControl.value = 0.5;
+    volumeValue.textContent = '50%';
+    slideDurationInput.value = 5;
+    footerTextInput.value = '';
+    footerTextColorInput.value = '#FFFFFF';
+    footerBgColorInput.value = '#000000';
+    slideshowContainer.style.backgroundImage = 'none';
+    slideshowContainer.style.backgroundSize = '';
+    slideshowContainer.style.backgroundPosition = '';
+    slideshowContainer.style.backgroundRepeat = '';
+    loadDefaultSettings();
+    updateFooter();
+    selectedTransitionEffects = ['fade-in'];
+    updateTransitionCheckboxes();
+
+    displayMessage('تم مسح جميع الشرائح والإعدادات.');
+}
+
+function handleFileUpload(fileInput, urlInput, previewElement = null) {
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                urlInput.value = event.target.result;
+                if (previewElement) {
+                    previewElement.src = event.target.result;
+                    previewElement.style.display = 'block';
+                }
+                if (fileInput.id === 'backgroundMusicFileInput') {
+                    backgroundMusicElement.src = event.target.result;
+                    backgroundMusicElement.play().catch(e => console.error("فشل تشغيل الموسيقى بعد الرفع:", e));
+                }
+            };
+            reader.readAsDataURL(file);
+        } else {
+            urlInput.value = '';
+            if (previewElement) {
+                previewElement.style.display = 'none';
+            }
+            if (fileInput.id === 'backgroundMusicFileInput') {
+                backgroundMusicElement.pause();
+                backgroundMusicElement.src = '';
+            }
+        }
+    });
+
+    urlInput.addEventListener('input', () => {
+        if (urlInput.value) {
+            if (previewElement) {
+                previewElement.src = urlInput.value;
+                previewElement.style.display = 'block';
+            }
+            if (urlInput.id === 'backgroundMusicUrl') {
+                backgroundMusicElement.src = urlInput.value;
+                backgroundMusicElement.play().catch(e => console.error("فشل تشغيل الموسيقى بعد تغيير الرابط:", e));
+            }
+        } else {
+            if (previewElement) {
+                previewElement.style.display = 'none';
+            }
+            if (urlInput.id === 'backgroundMusicUrl') {
+                backgroundMusicElement.pause();
+                backgroundMusicElement.src = '.\assets\najahna.mp3';
+            }
+        }
+    });
+}
+
+function updateBackground() {
+    const imageUrl = backgroundImageUrlInput.value.trim();
+    const file = backgroundFileInput.files[0];
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            slideshowContainer.style.backgroundImage = `url('${e.target.result}')`;
+            slideshowContainer.style.backgroundSize = 'cover';
+            slideshowContainer.style.backgroundPosition = 'center';
+            slideshowContainer.style.backgroundRepeat = 'no-repeat';
+            backgroundPreview.src = e.target.result;
+            backgroundPreview.style.display = 'block';
+            displayMessage('تم تحديث خلفية العرض من ملف.');
+        };
+        reader.readAsDataURL(file);
+    } else if (imageUrl) {
+        slideshowContainer.style.backgroundImage = `url('${imageUrl}')`;
+        slideshowContainer.style.backgroundSize = 'cover';
+        slideshowContainer.style.backgroundPosition = 'center';
+        slideshowContainer.style.backgroundRepeat = 'no-repeat';
+        backgroundPreview.src = imageUrl;
+        backgroundPreview.style.display = 'block';
+        displayMessage('تم تحديث خلفية العرض من رابط.');
+    } else {
+        slideshowContainer.style.backgroundImage = 'none';
+        backgroundPreview.style.display = 'none';
+        displayMessage('تم إزالة خلفية العرض.');
+    }
+}
+
+function loadSettingsFromFile(event) {
+    const file = event.target.files[0];
+    if (!file) {
+        displayMessage('الرجاء تحديد ملف JSON للتحميل.', true);
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+        try {
+            const importedSettings = JSON.parse(e.target.result);
+
+            if (importedSettings && Array.isArray(importedSettings.slides)) {
+                slides = [];
+                importedSettings.slides.forEach(s => slides.push(s));
+
+                currentSlideIndex = importedSettings.currentSlideIndex || 0;
+
+                if (importedSettings.background && importedSettings.background.url) {
+                    backgroundImageUrlInput.value = importedSettings.background.url;
+                    updateBackground();
+                }
+
+                if (importedSettings.music) {
+                    backgroundMusicUrlInput.value = importedSettings.music.url || '';
+                    musicVolumeControl.value = importedSettings.music.volume || 0.5;
+                    volumeValue.textContent = `${Math.round((importedSettings.music.volume || 0.5) * 100)}%`;
+                    if (importedSettings.music.url) {
+                        backgroundMusicElement.src = importedSettings.music.url;
+                    }
+                }
+
+                if (importedSettings.footer) {
+                    footerTextInput.value = importedSettings.footer.text || '';
+                    footerTextColorInput.value = importedSettings.footer.textColor || '#FFFFFF';
+                    footerBgColorInput.value = importedSettings.footer.bgColor || '#000000';
+                    updateFooter();
+                }
+
+                if (importedSettings.slideDuration) {
+                    slideDurationInput.value = importedSettings.slideDuration;
+                }
+
+                if (importedSettings.transitionEffects && Array.isArray(importedSettings.transitionEffects)) {
+                    selectedTransitionEffects = importedSettings.transitionEffects;
+                    updateTransitionCheckboxes();
+                }
+
+                updateSlidesList();
+                showSlide(currentSlideIndex);
+                startSlideshow();
+
+                displayMessage('تم تحميل الإعدادات من الملف بنجاح!');
+            } else {
+                displayMessage('ملف JSON الذي تم تحميله غير صالح أو لا يحتوي على بيانات الشرائح.', true);
+            }
+        } catch (error) {
+            console.error('خطأ في تحليل ملف JSON:', error);
+            displayMessage('حدث خطأ أثناء تحميل الملف. تأكد من أنه ملف JSON صالح.', true);
+        }
+    };
+
+    reader.onerror = () => {
+        displayMessage('حدث خطأ أثناء قراءة الملف.', true);
+    };
+
+    reader.readAsText(file);
+}
+
+function exportCurrentSettings() {
+    const settingsToSave = {
+        slides: slides,
+        background: {
+            url: backgroundImageUrlInput.value,
+        },
+        music: {
+            url: backgroundMusicUrlInput.value,
+            volume: musicVolumeControl.value
+        },
+        footer: {
+            text: footerTextInput.value,
+            textColor: footerTextColorInput.value,
+            bgColor: footerBgColorInput.value
+        },
+        currentSlideIndex: currentSlideIndex,
+        slideDuration: slideDurationInput.value,
+        transitionEffects: selectedTransitionEffects,
+    };
+
+    const dataStr = JSON.stringify(settingsToSave, null, 4);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'عرض_النجاح_الإعدادات.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    displayMessage('تم حفظ إعدادات العرض كملف JSON.');
+}
+
+function updateFooter() {
+    mainFooter.textContent = footerTextInput.value;
+    mainFooter.style.color = footerTextColorInput.value;
+    mainFooter.style.backgroundColor = footerBgColorInput.value;
+    if (footerTextInput.value.trim() === '') {
+        mainFooter.style.display = 'none';
+    } else {
+        mainFooter.style.display = 'block';
+    }
+}
+
+function getSelectedTransitionEffects() {
+    const checkboxes = transitionEffectsContainer.querySelectorAll('input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+}
+
+function updateTransitionCheckboxes() {
+    const checkboxes = transitionEffectsContainer.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.checked = selectedTransitionEffects.includes(cb.value);
+    });
+}
+
+async function imageToBase64(url) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.error('Error converting image:', error);
+        return url;
+    }
+}
+
+async function audioToBase64(url) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.error('Error converting audio:', error);
+        return url;
+    }
+}
+
+async function generateFinalVersion() {
+    try {
+        displayMessage('جاري إنشاء النسخة النهائية...');
+        
+        const config = {
+            slides: [],
+            background: {
+                url: backgroundImageUrlInput.value || currentBackgroundUrl,
+                isLocal: backgroundFileInput.files.length > 0
+            },
+            music: {
+                url: backgroundMusicUrlInput.value || currentMusicUrl,
+                isLocal: backgroundMusicFileInput.files.length > 0,
+                volume: musicVolumeControl.value
+            },
+            footer: {
+                text: footerTextInput.value,
+                textColor: footerTextColorInput.value,
+                bgColor: footerBgColorInput.value
+            },
+            settings: {
+                duration: slideDurationInput.value,
+                transitions: selectedTransitionEffects
+            }
+        };
+
+        for (const slide of slides) {
+            const newSlide = {...slide};
+            
+            if (slide.imageUrl) {
+                if (slide.imageUrl.startsWith('http') || slide.imageUrl.startsWith('data:')) {
+                    newSlide.imageUrl = await imageToBase64(slide.imageUrl);
+                } else {
+                    newSlide.imageUrl = slide.imageUrl;
+                }
+            }
+            
+            config.slides.push(newSlide);
+        }
+
+        if (config.background.url && config.background.isLocal) {
+            config.background.url = await imageToBase64(config.background.url);
+        }
+
+        if (config.music.url && config.music.isLocal) {
+            config.music.url = await audioToBase64(config.music.url);
+        }
+
+        const htmlContent = generateFinalHTML(config);
+        
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'عرض_التخرج_النهائي.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        displayMessage('تم توليد النسخة النهائية بنجاح!');
+    } catch (error) {
+        console.error('Error generating final version:', error);
+        displayMessage('حدث خطأ أثناء توليد النسخة النهائية', true);
+    }
+}
+
+function generateFinalHTML(config) {
+    return `
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>عرض التخرج - نسخة نهائية</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background-color: #000;
+        }
+        .slideshow-container {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+            background-image: url('${config.background.url}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            overflow: hidden;
+        }
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            transition: all 1s ease-in-out;
+        }
+        .slide.show {
+            opacity: 1;
+            z-index: 1;
+        }
+        .slide.text-slide {
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            text-align: center;
+        }
+        .slide.text-slide h2 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        .slide.text-slide p {
+            font-size: 1.5em;
+        }
+        .slide.student-slide {
+            flex-direction: column;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .slide.student-slide img {
+            display: block;
+            margin: 0 auto 20px auto;
+            border: 5px solid white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+        .student-image.circle {
+            border-radius: 50%;
+            width: 250px;
+            height: 250px;
+            object-fit: cover;
+        }
+        .student-image.rectangle {
+            width: 250px;
+            height: 375px;
+            object-fit: cover;
+        }
+        .slide.image-slide {
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .slide.image-slide .image-caption {
+            position: absolute;
+            bottom: 50px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1.2em;
+        }
+        .fade-in {
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .fade-in.show {
+            opacity: 1;
+        }
+        .slide-left {
+            transform: translateX(100%);
+            transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+            opacity: 0;
+        }
+        .slide-left.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .slide-right {
+            transform: translateX(-100%);
+            transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+            opacity: 0;
+        }
+        .slide-right.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .zoom-in {
+            transform: scale(0.5);
+            transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+            opacity: 0;
+        }
+        .zoom-in.show {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .rotate-in {
+            transform: rotateY(90deg);
+            transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+            opacity: 0;
+        }
+        .rotate-in.show {
+            transform: rotateY(0);
+            opacity: 1;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            padding: 12px;
+            text-align: center;
+            font-size: 1em;
+            z-index: 10;
+            color: ${config.footer.textColor || '#fff'};
+            background-color: ${config.footer.bgColor || '#333'};
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow-container" id="slideshowContainer"></div>
+    <div class="footer" id="mainFooter">${config.footer.text || ''}</div>
+    <audio id="backgroundMusic" loop></audio>
+
+    <script>
+        const config = ${JSON.stringify(config, null, 4)};
+        let currentSlideIndex = 0;
+        let slideshowInterval;
+        const container = document.getElementById('slideshowContainer');
+        const footer = document.getElementById('mainFooter');
+        const music = document.getElementById('backgroundMusic');
+
+        function showSlide(index) {
+            container.innerHTML = '';
+            if (!config.slides.length) {
+                container.innerHTML = '<div style="color:white;text-align:center;padding-top:40vh;font-size:24px;">لا توجد شرائح</div>';
+                return;
+            }
+
+            const slide = config.slides[index];
+            const slideEl = document.createElement('div');
+
+            const effects = config.settings.transitions || ['fade-in'];
+            const effectToApply = effects[Math.floor(Math.random() * effects.length)];
+
+            slideEl.classList.add('slide', effectToApply, 'show');
+
+            if (slide.type === 'student') {
+                let imgStyle = '';
+                if (slide.imageShape === 'circle') {
+                    imgStyle = 'width: 280px; height: 280px; border-radius: 50%; object-fit: cover; border: 5px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.4); margin-bottom: 20px;';
+                } else if (slide.imageShape === 'rectangle') {
+                    imgStyle = 'width: 250px; height: 375px; border-radius: 0; object-fit: cover; border: 5px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.4); margin-bottom: 20px;';
+                }
+
+                slideEl.innerHTML = \`
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background-color: rgba(0,0,0,0.6); padding: 20px;">
+                        <img src="\${slide.imageUrl}" alt="\${slide.name}" style="\${imgStyle}">
+                        <h2 style="font-size: 3em; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); font-weight: bold; margin-top: 10px;">\${slide.name}</h2>
+                        <p style="font-size: 2em; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); margin-top: 10px; max-width: 80%; text-align: center;">\${slide.comment}</p>
+                    </div>
+                \`;
+            }
+            else if (slide.type === 'text') {
+                slideEl.innerHTML = \`
+                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; background-color: rgba(0,0,0,0.6); padding: 20px;">
+                        <h2 style="font-size: 3em; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); font-weight: bold; margin-bottom: 20px;">\${slide.title}</h2>
+                        <p style="font-size: 2em; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); text-align: center;">\${slide.comment}</p>
+                    </div>
+                \`;
+            }
+            else if (slide.type === 'image') {
+                slideEl.style.backgroundImage = \`url('\${slide.imageUrl}')\`;
+                slideEl.style.backgroundSize = 'contain';
+                slideEl.style.backgroundPosition = 'center';
+                slideEl.style.backgroundRepeat = 'no-repeat';
+
+                if (slide.title || slide.caption) {
+                    slideEl.innerHTML = \`
+                        <div style="position: absolute; bottom: 50px; left: 0; right: 0; text-align: center; background: rgba(0,0,0,0.6); padding: 10px; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">
+                            \${slide.title ? \`<h2 style="font-size: 2.5em; font-weight: bold; margin-bottom: 10px;">\${slide.title}</h2>\` : ''}
+                            \${slide.caption ? \`<p style="font-size: 1.5em;">\${slide.caption}</p>\` : ''}
+                        </div>
+                    \`;
+                }
+            }
+
+            container.appendChild(slideEl);
+        }
+
+        function startSlideshow() {
+            clearInterval(slideshowInterval);
+            if (config.slides.length > 0) {
+                if (config.music.url) {
+                    music.src = config.music.url;
+                    music.volume = config.music.volume || 0.5;
+                    music.play().catch(() => console.log('اضغط على الصفحة لتشغيل الصوت.'));
+                }
+                slideshowInterval = setInterval(() => {
+                    currentSlideIndex = (currentSlideIndex + 1) % config.slides.length;
+                    showSlide(currentSlideIndex);
+                }, (config.settings.duration || 5) * 1000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            footer.textContent = config.footer.text || '';
+            footer.style.color = config.footer.textColor || '#fff';
+            footer.style.backgroundColor = config.footer.bgColor || '#333';
+            showSlide(0);
+            startSlideshow();
+
+            document.addEventListener('click', () => {
+                if (music.paused && music.src) music.play();
+            }, { once: true });
+        });
+    <\/script>
+</body>
+</html>
+`;
+}
+
+// ربط معالجات رفع الملفات
+handleFileUpload(backgroundFileInput, backgroundImageUrlInput, backgroundPreview);
+handleFileUpload(studentFileInput, studentImageUrlInput, studentPreview);
+handleFileUpload(imageFileInput, imageUrlInput, imagePreview);
+handleFileUpload(backgroundMusicFileInput, backgroundMusicUrlInput);
+
+// إضافة مستمعي الأحداث
+settingsToggleBtn.addEventListener('click', () => {
+    settingsPanel.classList.toggle('open');
+});
+
+addStudentBtn.addEventListener('click', () => {
+    const name = studentNameInput.value.trim();
+    const comment = studentCommentInput.value.trim();
+    const imageUrl = studentImageUrlInput.value.trim();
+    const imageShape = studentImageShapeInput.value;
+    if (name && imageUrl) {
+        addStudent(name, comment, imageUrl, imageShape);
+        studentNameInput.value = '';
+        studentCommentInput.value = '';
+        studentImageUrlInput.value = '';
+        studentFileInput.value = '';
+        studentPreview.style.display = 'none';
+    } else {
+        displayMessage('الرجاء إدخال اسم الطالب ورابط الصورة.', true);
+    }
+});
+
+addTextSlideBtn.addEventListener('click', () => {
+    const title = textTitleInput.value.trim();
+    const comment = textCommentInput.value.trim();
+    if (title || comment) {
+        addTextSlide(title, comment);
+        textTitleInput.value = '';
+        textCommentInput.value = '';
+    } else {
+        displayMessage('الرجاء إدخال عنوان أو نص للشريحة.', true);
+    }
+});
+
+addImageBtn.addEventListener('click', () => {
+    const url = imageUrlInput.value.trim();
+    const caption = imageCaptionInput.value.trim();
+    const imgTitle = imageTitleInput.value.trim();
+    if (url) {
+        addImage(url, caption, imgTitle);
+        imageUrlInput.value = '';
+        imageCaptionInput.value = '';
+        imageTitleInput.value = '';
+        imageFileInput.value = '';
+        imagePreview.style.display = 'none';
+    } else {
+        displayMessage('الرجاء إدخال رابط الصورة.', true);
+    }
+});
+
+musicVolumeControl.addEventListener('input', () => {
+    backgroundMusicElement.volume = musicVolumeControl.value;
+    volumeValue.textContent = `${Math.round(backgroundMusicElement.volume * 100)}%`;
+});
+
+playMusicBtn.addEventListener('click', () => {
+    if (backgroundMusicElement.src) {
+        backgroundMusicElement.play().catch(e => {
+            displayMessage('فشل تشغيل الموسيقى. قد يكون المتصفح يمنع التشغيل التلقائي.', true);
+            console.error("خطأ في تشغيل الموسيقى:", e);
+        });
+    } else {
+        displayMessage('لا يوجد رابط لمادة صوتية. الرجاء إضافة رابط أو رفع ملف.', true);
+    }
+});
+
+pauseMusicBtn.addEventListener('click', () => {
+    backgroundMusicElement.pause();
+});
+
+updateFooterBtn.addEventListener('click', () => {
+    updateFooter();
+    displayMessage('تم تحديث التذييل.');
+});
+
+applyTransitionEffectsBtn.addEventListener('click', () => {
+    selectedTransitionEffects = getSelectedTransitionEffects();
+    if (selectedTransitionEffects.length === 0) {
+        displayMessage('الرجاء اختيار تأثير انتقال واحد على الأقل. سيتم استخدام "تلاشي" افتراضيًا.', true);
+        selectedTransitionEffects = ['fade-in'];
+        updateTransitionCheckboxes();
+    }
+    displayMessage('تم تطبيق تأثيرات الانتقال المختارة.');
+});
+
+loadDefaultsBtn.addEventListener('click', loadDefaultSettings);
+clearAllBtn.addEventListener('click', clearAllSlides);
+exportSettingsBtn.addEventListener('click', exportCurrentSettings);
+loadFromFileBtn.addEventListener('click', () => loadFileInput.click());
+loadFileInput.addEventListener('change', loadSettingsFromFile);
+slideDurationInput.addEventListener('change', startSlideshow);
+updateBackgroundBtn.addEventListener('click', updateBackground);
+generateFinalBtn.addEventListener('click', generateFinalVersion);
+
+// تهيئة التطبيق عند التحميل
+document.addEventListener('DOMContentLoaded', () => {
+    slides = [];
+    currentSlideIndex = 0;
+    slideshowContainer.innerHTML = '<div class=\"slide active flex flex-col justify-center items-center text-gray-400 text-2xl font-bold\">لا توجد شرائح لعرضها. أضف شرائح من لوحة الإعدادات، حمل الإعدادات الافتراضية، أو حمل عرضًا من ملف JSON.</div>';
+    updateSlidesList();
+    stopSlideshow();
+    updateTransitionCheckboxes();
+    backgroundImageUrlInput.value = '';
+    document.body.style.setProperty('background-image', 'none', 'important');
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundPosition = '';
+    document.body.style.backgroundRepeat = '';
+    backgroundPreview.style.display = 'none';
+    backgroundPreview.src = '';
+    slideDurationInput.value = 5;
+    enableAudio();
+    loadDefaultSettings();
+});
