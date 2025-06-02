@@ -1067,10 +1067,12 @@ function handleFileUpload(fileInput, urlInput, previewElement = null) {
         updateFooter();
         selectedTransitionEffects = ['fade-in', 'slide-left'];
         updateTransitionCheckboxes();
-        addStudent("اسم الطالب 1", "تهانينا على التخرج!", "student1.jpg", "circle");
-        addStudent("اسم الطالب 2", "نتمنى لك التوفيق!", "student2.jpg", "rectangle");
-        addTextSlide("تهانينا!", "نتمنى لكم دوام التوفيق والنجاح.");
-        addImage('photo1.jpg', 'تعلم وإلى العلياء تقدم', 'العلم نور');
+    addStudent("الطالب الأول", "تهانينا لك بالنجاح!", "student1.jpg", "circle");
+    addStudent("الطالب الثاني", "مبروك التخرج!", "student2.jpg", "rectangle");
+    addTextSlide("تهانينا!", "نتمنى لكم دوام التوفيق والنجاح");
+    addTextSlide("ألف مبروك النجاح!", "نفخر بتميزكم ونتمنى لكم كل التوفيق");
+    addImage('photo1.jpg', 'تعلم وإلى العلياء تقدم', 'العلم نور');
+    addImage('photo2.jpg', 'حفل التخرج 1446هـ', 'تهانينا للخريجين');
         slideDurationInput.value = 5;
         updateSlidesList();
         showSlide(0);
