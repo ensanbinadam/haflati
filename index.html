@@ -13,7 +13,7 @@
     <!-- مكتبة Compressor.js لضغط الصور -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/compressorjs/1.2.1/compressor.min.js"></script>
     <!-- مكتبة Typed.js لتأثير Typewriter -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>//
 </head>
 <body>
     <!-- حاوية العرض التقديمي -->
@@ -1061,7 +1061,7 @@ function handleFileUpload(fileInput, urlInput, previewElement = null) {
         backgroundMusicElement.src = 'graduation.mp3';
         musicVolumeControl.value = 0.5;
         volumeValue.textContent = '50%';
-        footerTextInput.value = 'حفل تخرجنا 2024';
+        footerTextInput.value = 'حفل تخرجنا/نجاحنا 1446هـ';
         footerTextColorInput.value = '#FFFFFF';
         footerBgColorInput.value = '#000000';
         updateFooter();
@@ -1573,11 +1573,11 @@ async function generateFinalVersion() {
 // تعديل loadDefaultSettings لتجنب روابط file://
 function loadDefaultSettings() {
     slides = [];
-    backgroundImageUrlInput.value = ''; // لا روابط file://
-    backgroundMusicUrlInput.value = ''; // لا روابط file://
+    backgroundImageUrlInput.value = 'background.jpg'; // لا روابط file://
+    backgroundMusicUrlInput.value = 'graduation.mp3'; // لا روابط file://
     musicVolumeControl.value = 0.5;
     volumeValue.textContent = '50%';
-    footerTextInput.value = 'حفل تخرجنا 2024';
+    footerTextInput.value = 'حفل تخرجنا/نجاحنا 1447هـ';
     footerTextColorInput.value = '#FFFFFF';
     footerBgColorInput.value = '#000000';
     updateFooter();
